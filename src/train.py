@@ -75,10 +75,10 @@ class Trainer():
                         tqdm.write(f"[VAL-LOSS] =======> {val_loss_dict['val_loss']}")
             ### Rest is logging ###
             epoch_summary = NeRFSystem.validation_epoch_end(epoch_number=epoch)
-            if epoch_summary.get("saving_ckpt", default=False):
+            if epoch_summary.get("saving_ckpt", False):
                 tqdm.write("================== Saved Checkpoint =================")
             tqdm.write(f"[FINAL-RENDERING-LOSS] =======> {epoch_summary['last_rendering_loss']}")
-            tqdm.write(f"[MEAN-RENDERING-LOSS] =======> {epoch_summary['mean_model_loss']}")
+            tqdm.write(f"[MEAN-RENDERING-LOSS] =======> {epoch_summary['mean_rendering_loss']}")
             delta_time_batch = time.time() - batch_time
             tqdm.write(f"[VAL-LOSS] =======> {val_loss_dict['val_loss']}")
             tqdm.write(f"================== End of Epoch {epoch}, Duration : {delta_time_batch} =================")

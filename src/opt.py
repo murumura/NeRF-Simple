@@ -17,10 +17,10 @@ def get_options():
     parser.add_argument('--state_dir', type=str, default=None, 
                         help='where to load state from.')
 
-    parser.add_argument('--validate_every', type=int, default=50, 
+    parser.add_argument('--validate_every', type=int, default=500, 
                         help='number of training iterations after which to validate.')
     
-    parser.add_argument('--save_every', type=int, default=2, 
+    parser.add_argument('--save_every', type=int, default=1, 
                         help='number of training epoches after which to validate.')
 
     parser.add_argument("--render_img_every", type=int, default=500, 

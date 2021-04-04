@@ -1,6 +1,7 @@
 import logging
 import os
 import torchvision
+import torch
 import statistics
 from .misc import clear_and_create_folder
 
@@ -64,7 +65,7 @@ class Logger(object):
         if category not in self.stats:
             return default
 
-        return statistics.mean([self.get(category, k, i) for i in range(len(self.stats[category][k]))])
+        return torch.stack([self.get(category, k, i) for i in range(len(self.stats[category][k]))]).mean()
 
     def add_imgs(self, imgs, class_name, it):
         outfile = os.path.join(self.output_dir, f'{class_name}%08d.png' % it)

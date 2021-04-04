@@ -10,6 +10,6 @@ epochs = 16
 img_wh = [400,400]
 N_coarse_samples = 64
 N_importance_samples = 128
-batch_size = 2048
+batch_size = 2096
 chunk_size = 1024
 perturb = True

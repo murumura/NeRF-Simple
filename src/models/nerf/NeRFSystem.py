@@ -55,6 +55,8 @@ class NeRFSystem(torch.nn.Module):
         # Mode
         self.training = False
 
+        # Optimizer
+        self.optimizer = None
     def train_mode(self):
         self.training = True
         self.model_coarse.train()
@@ -94,12 +96,12 @@ class NeRFSystem(torch.nn.Module):
         if self.args.N_importance_samples > 0:
             params += list(self.model_fine.parameters())
         if self.args.optimizer == 'adam':
-            optimizer = torch.optim.Adam(params=params,
+            self.optimizer = torch.optim.Adam(params=params,
                                  lr=self.args.learning_rate,
                                  betas=(0.9, 0.999))
         else:
             raise NotImplementedError('args.optimizer type [%s] is not found' % self.args.optimizer)
-        return optimizer
+        return self.optimizer
 
     def decode_batch(self, batch):
         rays = batch['rays'] # (B, 8)
