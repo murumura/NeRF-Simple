@@ -1,0 +1,8 @@
+torch==1.8.0
+torchvision==0.9.1
+imageio==2.9.0
+imageio-ffmpeg==0.4.3
+matplotlib
+configargparse
+tqdm
+opencv-python
