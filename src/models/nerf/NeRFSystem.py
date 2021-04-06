@@ -299,6 +299,7 @@ class NeRFSystem(torch.nn.Module):
             stack = torch.stack([img_gt, img, depth]) # (3, 3, H, W)
             self.logger.add_imgs(stack, 'val_GT_pred_depth', iter_idx)
             disp = cast_to_disparity_image(bundle[f'disp_map'].view(H, W)) # (3, H, W)
+            print(disp.shape)
             self.logger.add_imgs(disp, 'disparity', iter_idx)
 
         render_video = (iter_idx % self.args.render_video_every == 0 and iter_idx > 0)

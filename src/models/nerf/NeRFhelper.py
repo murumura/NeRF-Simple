@@ -35,15 +35,18 @@ def cast_to_image(tensor):
     return img
 
 def cast_to_disparity_image(tensor, white_background = False):
-    # Input tensor is (H, W).
+    """
+    depth: (H, W)
+    """
+    img = tensor.cpu()
     img = (tensor - tensor.min()) / (tensor.max() - tensor.min())
     img = (img.clamp(0., 1.) * 255).byte()
 
     if white_background:
         # Apply white background
         img[img == 0] = 255
-
-    return img.detach().cpu().numpy()
+     
+    return img
 
 def cast_to_depth_image(depth, cmap=cv2.COLORMAP_JET):
     """

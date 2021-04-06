@@ -6,10 +6,10 @@ dataset_type = blender
 out_dir = ./output
 
 white_bkgd = True
-epochs = 16
+epochs = 30
 img_wh = [400,400]
 N_coarse_samples = 64
 N_importance_samples = 128
-batch_size = 2096
+batch_size = 2048
 chunk_size = 1024
 perturb = True
