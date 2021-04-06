@@ -1,5 +1,5 @@
 import torch
-from .NeRFhelper import intervals_to_ray_points, cast_to_depth_image
+from .NeRFhelper import (intervals_to_ray_points, cast_to_depth_image, cast_to_disparity_image)
 from .Sampler import (SamplePDF, RaySampleInterval)
 from .Models import NeRF
 from .Embedder import Embedder
@@ -199,7 +199,6 @@ class NeRFSystem(torch.nn.Module):
             # Expand rays to match batch_size
             expanded_ray_directions = ray_directions[..., None, :].expand_as(ray_points)
             # Fine inference
-            # Coarse inference
             fine_radiance_field = inference(
                 model=self.model_fine,
                 embedder_xyz=self.embedder_xyz,
@@ -252,7 +251,7 @@ class NeRFSystem(torch.nn.Module):
         }
 
     @torch.no_grad()
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, iter_idx):
         """Do batched inference on rays using chunk."""
         self.eval_mode()
         rays, rgbs = self.decode_batch(batch)
@@ -288,9 +287,9 @@ class NeRFSystem(torch.nn.Module):
             category='val_loss', 
             k='rendering', 
             v=log['val_loss'], 
-            it=batch_idx
+            it=iter_idx
         )
-        render_img = (batch_idx % self.args.render_img_every == 0 and batch_idx > 0)
+        render_img = (iter_idx % self.args.render_img_every == 0 and iter_idx > 0)
         if render_img:
             W, H = self.args.img_wh
             img = bundle['rgb_map'].view(H, W, 3).cpu()
@@ -298,9 +297,11 @@ class NeRFSystem(torch.nn.Module):
             img_gt = rgbs.view(H, W, 3).permute(2, 0, 1).cpu() # (3, H, W)
             depth = cast_to_depth_image(bundle[f'depth_map'].view(H, W)) # (3, H, W)
             stack = torch.stack([img_gt, img, depth]) # (3, 3, H, W)
-            self.logger.add_imgs(stack, 'val_GT_pred_depth', batch_idx)
+            self.logger.add_imgs(stack, 'val_GT_pred_depth', iter_idx)
+            disp = cast_to_disparity_image(bundle[f'disp_map'].view(H, W)) # (3, H, W)
+            self.logger.add_imgs(disp, 'disparity', iter_idx)
 
-        render_video = (batch_idx % self.args.render_video_every == 0 and batch_idx > 0)
+        render_video = (iter_idx % self.args.render_video_every == 0 and iter_idx > 0)
         if render_video:
             pass
         if self.training:

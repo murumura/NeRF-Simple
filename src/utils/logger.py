@@ -2,7 +2,6 @@ import logging
 import os
 import torchvision
 import torch
-import statistics
 from .misc import clear_and_create_folder
 
 class Logger(object):
@@ -72,13 +71,16 @@ class Logger(object):
         imgs = imgs / 2 + 0.5
         imgs = torchvision.utils.make_grid(imgs)
         torchvision.utils.save_image(imgs.clone(), outfile, nrow=8)
-        
+
+    def add_videos(self, videos, class_name, it):
+        pass
+    
     def save_states(self, ckpt_dict, e_it):
         torch.save(
                 ckpt_dict,
                 os.path.join(self.state_dir, "checkpoint" + str(e_it).zfill(5) + ".ckpt"),
         )
 
-    def load_stats(self, filename):
+    def load_ckpt(self, filename):
         pass
     

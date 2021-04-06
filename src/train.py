@@ -68,10 +68,11 @@ class Trainer():
                     )
                     pbar.update()
                     # Validation
-                    if (epoch * n_rays + batch_idx) % (self.validate_freq) == 0 and batch_idx > 0:
-                        tqdm.write("[VAL] =======> Iter: " + str(batch_idx))
+                    iter_n = epoch * n_rays + batch_idx
+                    if (iter_n) % (self.validate_freq) == 0 and batch_idx > 0:
+                        tqdm.write("[VAL] =======> Iter: " + str(iter_n))
                         val_batch = next(validation_iterator)
-                        val_loss_dict = NeRFSystem.validation_step(val_batch, epoch * n_rays + batch_idx)
+                        val_loss_dict = NeRFSystem.validation_step(val_batch, iter_n)
                         tqdm.write(f"[VAL-LOSS] =======> {val_loss_dict['val_loss']}")
             ### Rest is logging ###
             epoch_summary = NeRFSystem.validation_epoch_end(epoch_number=epoch)
