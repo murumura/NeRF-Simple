@@ -58,6 +58,12 @@ def get_options():
     parser.add_argument('--learning_rate', type=float, default=5e-4,
                         help='learning rate')
 
+    parser.add_argument("--learning_rate_decay", type=int, default=250, 
+                        help='exponential learning rate decay (in 1000 steps)')
+
+    parser.add_argument('--lr_decay_rate', type=float, default=0.1,
+                        help='learning rate decay amount')
+
     # volume rendering option
     parser.add_argument('--noise_std', type=float, default=1.0,
                         help='factor to perturb the model prediction of sigma')

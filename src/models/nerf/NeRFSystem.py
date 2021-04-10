@@ -299,7 +299,6 @@ class NeRFSystem(torch.nn.Module):
             stack = torch.stack([img_gt, img, depth]) # (3, 3, H, W)
             self.logger.add_imgs(stack, 'val_GT_pred_depth', iter_idx)
             disp = cast_to_disparity_image(bundle[f'disp_map'].view(H, W)) # (3, H, W)
-            print(disp.shape)
             self.logger.add_imgs(disp, 'disparity', iter_idx)
 
         render_video = (iter_idx % self.args.render_video_every == 0 and iter_idx > 0)
@@ -331,3 +330,8 @@ class NeRFSystem(torch.nn.Module):
             "last_rendering_loss": fine_model_loss_last,
             "mean_rendering_loss": mean_rendering_loss
         }
+        
+    def update_learning_rate(self, iter_idx):
+        decay_steps = self.args.learning_rate_decay * 1000
+        new_learning_rate = self.args.learning_rate * (self.args.lr_decay_rate ** (iter_idx / decay_steps))
+        return new_learning_rate

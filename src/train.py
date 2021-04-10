@@ -52,13 +52,18 @@ class Trainer():
             batch_time = time.time()
             with tqdm(total=n_rays, desc=f'Epoch {epoch + 1}/{self.num_epochs}', unit='rays') as pbar:
                 for batch_idx, batch in enumerate(train_dataloader):
+                    iter_n = epoch * n_rays + batch_idx
                     loss_dict = NeRFSystem.training_step(batch,batch_idx)
                     loss = loss_dict['loss']
                     optimizer.zero_grad()
 
                     loss.backward()
                     optimizer.step()
-                    ###   update learning rate  (@todo) ###
+                    ###   update learning rate  ###
+                    new_lr = NeRFSystem.update_learning_rate(iter_n)
+                    for param_group in optimizer.param_groups:
+                        param_group['lr'] = new_lr
+                        
                     pbar.set_postfix(
                         **{
                         'Train loss(batch)'     : loss_dict['log']['train/loss'].item(),
@@ -68,7 +73,6 @@ class Trainer():
                     )
                     pbar.update()
                     # Validation
-                    iter_n = epoch * n_rays + batch_idx
                     if (iter_n) % (self.validate_freq) == 0 and batch_idx > 0:
                         tqdm.write("[VAL] =======> Iter: " + str(iter_n))
                         val_batch = next(validation_iterator)
