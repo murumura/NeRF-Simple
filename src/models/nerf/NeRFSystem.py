@@ -108,7 +108,45 @@ class NeRFSystem(torch.nn.Module):
         rgbs = batch['rgbs'] # (B, 3)
         return rays, rgbs
 
+    def get_model(self):
+        if self.args.N_importance_samples > 0:
+            return self.model_fine
+        return self.model_coarse
+
+    @torch.no_grad()
+    def query_points(self, points, rays=None, **kwargs):
+        """ Does a prediction for sampled points along the ray.
+        Args:
+            points: (N_samples, 3) tensor of sampled positions along the ray
+            rays::  (N_samples, 3) tensor of camera rays along the ray
+        Returns: 
+            results:    (N_samples, 4) tensor with quired radiance for each sampled points along the ray.
+        """
+        # Get fine/coarse model
+        model = self.get_model()
+        # Make sure we flatten the first two dimensions 
+        points = points.view(-1, 3) # (-1, 3)
+        points_embedded = self.embedder_xyz(points) # (N_samples, 63)
+        if rays is not None:
+            rays = rays.view(-1, 3) # (-1, 3)
+            rays_embedded = self.embedder_dir(rays) # (N_samples, 27)
+        N_samples = points.shape[0]
         
+        cat_embedded = torch.cat((points_embedded, rays_embedded), dim=-1) if rays is not None else points_embedded
+
+        results = model.forward(cat_embedded) # (N_samples, 4)
+        
+        return results
+
+    @torch.no_grad()
+    def query(self, ray_batch):
+        # Fine query
+        coarse_bundle, fine_bundle = self.forward(ray_batch)
+        if fine_bundle is not None:
+            return fine_bundle
+
+        return coarse_bundle
+
     def forward(self, ray_batch):
         """ Does a prediction for a batch of rays.
 
@@ -335,3 +373,18 @@ class NeRFSystem(torch.nn.Module):
         decay_steps = self.args.learning_rate_decay * 1000
         new_learning_rate = self.args.learning_rate * (self.args.lr_decay_rate ** (iter_idx / decay_steps))
         return new_learning_rate
+    
+    def load_ckpt(self, ckpts, nn_module_name):
+        self.logger.load_ckpt(ckpts)
+        if len(self.logger.stats) > 0:
+            assert (isinstance(nn_module_name, tuple) or isinstance(nn_module_name, list)), \
+                "nn_module_name arg should be either iterable."
+            for name in nn_module_name:
+                if name == 'model_fine_state_dict':
+                    self.model_fine.load_state_dict(self.logger.stats['model_fine_state_dict'])
+                elif name == 'model_coarse_state_dict':
+                    self.model_coarse.load_state_dict(self.logger.stats['model_coarse_state_dict'])
+                elif name == 'optimizer_state_dict':
+                    self.optimizer.load_state_dict(self.logger.stats['optimizer_state_dict'])
+                else:
+                    raise NotImplementedError('module name [%s] not found' % name)

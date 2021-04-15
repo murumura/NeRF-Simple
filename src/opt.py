@@ -15,6 +15,9 @@ def get_options():
                         help='Directory for evaluation output.')
 
     parser.add_argument('--state_dir', type=str, default=None, 
+                        help='where to save state to.')
+
+    parser.add_argument('--ckpt', type=str, default=None, 
                         help='where to load state from.')
 
     parser.add_argument('--validate_every', type=int, default=500, 
@@ -111,7 +114,20 @@ def get_options():
     parser.add_argument("--exp_name", type=str, 
                         help='experiment name')
 
-    ## blender flags
+    # mesh extraction options
+    parser.add_argument("--mesh_name", type=str, default="mesh.obj", 
+                        help="Mesh name to be generated.")
+
+    parser.add_argument("--iso_level", type=float, default=32,
+                        help="Iso-level value for triangulation")
+
+    parser.add_argument("--limit", type=float, default=1.2,
+                        help="Limits in -xyz to xyz for marching cubes 3D grid.")
+
+    parser.add_argument("--res", type=int, default=128,
+                        help="Sampling resolution for marching cubes, increase it for higher level of detail.")
+    
+    # blender flags
     parser.add_argument("--white_bkgd", type=boolean_string, default=False, 
                         help='set to render synthetic data on a white bkgd (always use for dvoxels)')
 

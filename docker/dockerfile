@@ -11,12 +11,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip && pip3 --no-cache-dir install \
+RUN pip install --upgrade pip && pip --no-cache-dir install \
     Pillow \
     h5py \
     keras_preprocessing \
     matplotlib \
     mock \
+    pytorch3d \
     numpy \
     scipy \
     sympy \
@@ -25,6 +26,7 @@ RUN pip install --upgrade pip && pip3 --no-cache-dir install \
     pandas \
     future \
     portpicker \
+    PyMCubes \
     librosa \
     numba==0.48.0 \
     tqdm \
@@ -47,4 +49,3 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/
 RUN chmod +x /usr/bin/tini
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["bash", "-c", "source /etc/bash.bashrc && jupyter notebook --notebook-dir=/mvwf --ip 0.0.0.0  --allow-root"]
-

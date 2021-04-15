@@ -20,6 +20,7 @@ class Trainer():
         self.batch_size = batch_size
         self.num_epochs = epochs
         self.validate_freq = validate_freq
+        self.device = 'cpu'
         if args.cuda:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         logging.info(f'''Training logging:
@@ -93,10 +94,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
     args = get_options().parse_args()
     logger = Logger(
-        log_dir=os.path.join(args.log_dir, args.exp_name),
+        args=args,
         output_dir=os.path.join(args.out_dir, args.exp_name),
-        state_dir=os.path.join(args.state_dir, args.exp_name),
-        args=args
+        log_dir=os.path.join(args.log_dir, args.exp_name),
+        state_dir=os.path.join(args.state_dir, args.exp_name)
     )
     system = NeRFSystem(args, logger)
     nerf_trainer = Trainer(
