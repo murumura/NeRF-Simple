@@ -5,7 +5,7 @@ dataset_dir = ./data/datasets/nerf_synthetic/lego
 dataset_type = blender
 out_dir = ./output
 
-white_bkgd = False
+white_bkgd = True
 epochs = 16
 img_wh = [400,400]
 N_coarse_samples = 64

@@ -1,0 +1,18 @@
+exp_name = blender_paper_chair
+log_dir = ./logs
+state_dir=./states
+dataset_dir = ./data/datasets/nerf_synthetic/chair
+dataset_type = blender
+out_dir = ./output
+
+white_bkgd = True
+epochs = 16
+img_wh = [400,400]
+N_coarse_samples = 64
+N_importance_samples = 128
+batch_size = 2048
+chunk_size = 1024
+perturb = True
+
+mesh_name = chair.obj
+ckpt = ./pretrained/chair.ckpt
