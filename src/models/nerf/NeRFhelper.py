@@ -5,6 +5,12 @@ import cv2
 import torchvision.transforms as T
 from PIL import Image
 
+def psnr(mse):
+    # For numerical stability, avoid a zero mse loss.
+    if mse == 0:
+        mse = 1e-5
+    return -10.0 * torch.log10(torch.tensor(mse, dtype=torch.float32))
+
 def intervals_to_ray_points(point_intervals, ray_directions, ray_origin):
     """Through depths of the sampled positions('point_intervals') and the starting point('ray_origin') 
         and direction vector of the light('ray_directions'), calculate each point on the light

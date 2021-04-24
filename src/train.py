@@ -69,7 +69,9 @@ class Trainer():
                         **{
                         'Train loss(batch)'     : loss_dict['log']['train/loss'].item(),
                         'Coarse loss (batch)'   : loss_dict['log']['train/coarse_loss'].item(),
-                        'Fine loss (batch)'     : loss_dict['log']['train/fine_loss'].item()
+                        'Fine loss (batch)'     : loss_dict['log']['train/fine_loss'].item(),
+                        "Coarse psnr (batch)"   : loss_dict['log']['train/coarse_psnr'].item(),
+                        "Fine psnr (batch)"   : loss_dict['log']['train/fine_psnr'].item()
                         }
                     )
                     pbar.update()
@@ -79,14 +81,16 @@ class Trainer():
                         val_batch = next(validation_iterator)
                         val_loss_dict = NeRFSystem.validation_step(val_batch, iter_n)
                         tqdm.write(f"[VAL-LOSS] =======> {val_loss_dict['val_loss']}")
+                        tqdm.write(f"[VAL-PSNR] =======> {val_loss_dict['val_psnr']}")
             ### Rest is logging ###
             epoch_summary = NeRFSystem.validation_epoch_end(epoch_number=epoch)
             if epoch_summary.get("saving_ckpt", False):
                 tqdm.write("================== Saved Checkpoint =================")
             tqdm.write(f"[FINAL-RENDERING-LOSS] =======> {epoch_summary['last_rendering_loss']}")
             tqdm.write(f"[MEAN-RENDERING-LOSS] =======> {epoch_summary['mean_rendering_loss']}")
+            tqdm.write(f"[FINAL-PSNR] =======> {epoch_summary['last_rendering_psnr']}")
+            tqdm.write(f"[MEAN-PSNR] =======> {epoch_summary['mean_rendering_psnr']}")
             delta_time_batch = time.time() - batch_time
-            tqdm.write(f"[VAL-LOSS] =======> {val_loss_dict['val_loss']}")
             tqdm.write(f"================== End of Epoch {epoch}, Duration : {delta_time_batch} =================")
         #####  We are done!  #####
         logging.info(f'Done! Total time spent:{time.time() - total_time}')

@@ -68,7 +68,7 @@ def get_options():
                         help='learning rate decay amount')
 
     # volume rendering option
-    parser.add_argument('--noise_std', type=float, default=1.0,
+    parser.add_argument('--noise_std', type=float, default=0.2,
                         help='factor to perturb the model prediction of sigma')
 
     # position encoding option

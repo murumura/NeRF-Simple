@@ -1,5 +1,5 @@
 import torch
-from .NeRFhelper import (intervals_to_ray_points, cast_to_depth_image, cast_to_disparity_image)
+from .NeRFhelper import (intervals_to_ray_points, cast_to_depth_image, cast_to_disparity_image, psnr)
 from .Sampler import (SamplePDF, RaySampleInterval)
 from .Models import NeRF
 from .Embedder import Embedder
@@ -48,6 +48,7 @@ class NeRFSystem(torch.nn.Module):
 
         # Criterions
         self.loss = torch.nn.MSELoss()
+        self.psnr = psnr  
 
         # Dataset
         self.train_dataset, self.val_dataset = None, None
@@ -57,6 +58,7 @@ class NeRFSystem(torch.nn.Module):
 
         # Optimizer
         self.optimizer = None
+
     def train_mode(self):
         self.training = True
         self.model_coarse.train()
@@ -262,12 +264,16 @@ class NeRFSystem(torch.nn.Module):
         # Forward pass
         coarse_bundle, fine_bundle = self.forward(rays)
         coarse_loss += self.loss(coarse_bundle['rgb_map'], rgbs)
+        coarse_psnr = self.psnr(coarse_loss.item())
+
         if self.model_fine is not None:
             fine_loss += self.loss(fine_bundle['rgb_map'], rgbs)
-        #  Compute loss
-        coarse_loss /= batch_count
+            fine_psnr = self.psnr(fine_loss.item())
+
+        # logging loss/psnr for coarse network
         log_vals = {
-            "train/coarse_loss": coarse_loss
+            "train/coarse_loss": coarse_loss,
+            "train/coarse_psnr": coarse_psnr
         }
 
         loss = coarse_loss
@@ -277,7 +283,8 @@ class NeRFSystem(torch.nn.Module):
             loss += fine_loss
             log_vals = {
                 **log_vals,
-                "train/fine_loss": fine_loss
+                "train/fine_loss": fine_loss,
+                "train/fine_psnr": fine_psnr
             }
 
         return {
@@ -319,7 +326,10 @@ class NeRFSystem(torch.nn.Module):
             fine_bundle = {k : torch.cat(fine_bundle[k], 0) for k in fine_bundle}
 
         bundle = fine_bundle if bool(fine_bundle) else coarse_bundle
-        log = {'val_loss': self.loss(bundle['rgb_map'], rgbs)}
+
+        val_loss = self.loss(bundle['rgb_map'], rgbs)
+        val_psnr = self.psnr(val_loss.item())
+        log = {'val_loss': val_loss, 'val_psnr' : val_psnr}
         # logging
         self.logger.add(
             category='val_loss', 
@@ -327,6 +337,13 @@ class NeRFSystem(torch.nn.Module):
             v=log['val_loss'], 
             it=iter_idx
         )
+        self.logger.add(
+            category='val_psnr', 
+            k='rendering', 
+            v=log['val_psnr'], 
+            it=iter_idx
+        )
+
         render_img = (iter_idx % self.args.render_img_every == 0 and iter_idx > 0)
         if render_img:
             W, H = self.args.img_wh
@@ -363,10 +380,16 @@ class NeRFSystem(torch.nn.Module):
             self.logger.get_last(category='val_loss', k='rendering')
         mean_rendering_loss = \
             self.logger.get_mean(category='val_loss', k='rendering')
+        fine_model_psnr_last = \
+            self.logger.get_last(category='val_psnr', k='rendering')
+        mean_rendering_psnr = \
+            self.logger.get_mean(category='val_psnr', k='rendering')
         return {
             "saving_ckpt": saving_ckpt,
             "last_rendering_loss": fine_model_loss_last,
-            "mean_rendering_loss": mean_rendering_loss
+            "mean_rendering_loss": mean_rendering_loss,
+            "last_rendering_psnr": fine_model_psnr_last,
+            "mean_rendering_psnr": mean_rendering_psnr
         }
         
     def update_learning_rate(self, iter_idx):

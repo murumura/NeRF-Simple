@@ -12,7 +12,10 @@ N_coarse_samples = 64
 N_importance_samples = 128
 batch_size = 2048
 chunk_size = 1024
+noise_std = 0.2
 perturb = True
 
 mesh_name = lego.obj
 ckpt = ./pretrained/lego.ckpt
+
+iso_level = 90
