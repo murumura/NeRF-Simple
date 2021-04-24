@@ -257,9 +257,6 @@ class NeRFSystem(torch.nn.Module):
         rays, rgbs = self.decode_batch(batch)
         rays, rgbs = rays.to(self.device), rgbs.to(self.device)
 
-        # Manual batching, since images are expensive to be kept on GPU
-        batch_count = self.args.batch_size
-
         coarse_loss, fine_loss = 0, 0
         # Forward pass
         coarse_bundle, fine_bundle = self.forward(rays)
@@ -278,8 +275,7 @@ class NeRFSystem(torch.nn.Module):
 
         loss = coarse_loss
         if self.model_fine is not None:
-            #  Compute loss
-            fine_loss /= batch_count
+            #  Compute loss for fine network
             loss += fine_loss
             log_vals = {
                 **log_vals,
