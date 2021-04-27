@@ -28,14 +28,14 @@ class NeRF(torch.nn.Module):
                 layer = torch.nn.Linear(W+in_channels_xyz, W)
             else:
                 layer = torch.nn.Linear(W, W)
-            layer = torch.nn.Sequential(layer, torch.nn.ReLU(True))
+            layer = torch.nn.Sequential(layer, torch.nn.Softplus())
             setattr(self, f"xyz_encoding_{i+1}", layer)
         self.xyz_encoding_final = torch.nn.Linear(W, W)
 
         # direction encoding layers
         self.dir_encoding = torch.nn.Sequential(
                                 torch.nn.Linear(W+in_channels_dir, W//2),
-                                torch.nn.ReLU(True))
+                                torch.nn.Softplus())
 
         # output layers
         self.sigma = torch.nn.Linear(W, 1)

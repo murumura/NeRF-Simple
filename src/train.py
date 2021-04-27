@@ -43,7 +43,7 @@ class Trainer():
         validation_dataloader = NeRFSystem.val_dataloader()
         validation_iterator = data_loop(validation_dataloader)
         ##### configure optimizer #####
-        optimizer = NeRFSystem.configure_optimizers()
+        optimizer, scheduler = NeRFSystem.configure_optimizers()
         ##### setup #####
         total_time = time.time()
         n_rays = len(train_dataloader) # rays
@@ -61,9 +61,7 @@ class Trainer():
                     loss.backward()
                     optimizer.step()
                     ###   update learning rate  ###
-                    new_lr = NeRFSystem.update_learning_rate(iter_n)
-                    for param_group in optimizer.param_groups:
-                        param_group['lr'] = new_lr
+                    scheduler.step()
                         
                     pbar.set_postfix(
                         **{

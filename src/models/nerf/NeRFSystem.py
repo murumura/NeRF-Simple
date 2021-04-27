@@ -93,8 +93,20 @@ class NeRFSystem(torch.nn.Module):
         self.train_dataset = dataset(split='train', **kwargs)
         self.val_dataset = dataset(split='val', **kwargs)
 
+    def get_scheduler(self, optimizer):
+        # Following the original code, we use exponential decay of the
+        # learning rate: current_lr = base_lr * gamma ** (epoch / step_size)
+        gamma = self.args.gamma
+        step_size = self.args.step_size
+
+        return torch.optim.lr_scheduler.LambdaLR(
+            optimizer,
+            lr_lambda=lambda step: gamma ** (step / step_size)
+        )
+
     def configure_optimizers(self):
-        params = list(self.model_coarse.parameters())
+        params = []
+        params += list(self.model_coarse.parameters())
         if self.args.N_importance_samples > 0:
             params += list(self.model_fine.parameters())
         if self.args.optimizer == 'adam':
@@ -103,7 +115,15 @@ class NeRFSystem(torch.nn.Module):
                                  betas=(0.9, 0.999))
         else:
             raise NotImplementedError('args.optimizer type [%s] is not found' % self.args.optimizer)
-        return self.optimizer
+
+        if hasattr(torch.optim.lr_scheduler, self.args.lr_scheduler_type):
+            scheduler = getattr(torch.optim.lr_scheduler, self.args.lr_scheduler_type)(
+                self.optimizer, self.args.gamma, self.args.step_size
+            )
+        else:
+            scheduler = self.get_scheduler(self.optimizer)
+
+        return self.optimizer, scheduler
 
     def decode_batch(self, batch):
         rays = batch['rays'] # (B, 8)
@@ -387,11 +407,6 @@ class NeRFSystem(torch.nn.Module):
             "last_rendering_psnr": fine_model_psnr_last,
             "mean_rendering_psnr": mean_rendering_psnr
         }
-        
-    def update_learning_rate(self, iter_idx):
-        decay_steps = self.args.learning_rate_decay * 1000
-        new_learning_rate = self.args.learning_rate * (self.args.lr_decay_rate ** (iter_idx / decay_steps))
-        return new_learning_rate
     
     def load_ckpt(self, ckpts, nn_module_name):
         self.logger.load_ckpt(ckpts)

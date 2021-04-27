@@ -61,14 +61,17 @@ def get_options():
     parser.add_argument('--learning_rate', type=float, default=5e-4,
                         help='learning rate')
 
-    parser.add_argument("--learning_rate_decay", type=int, default=250, 
-                        help='exponential learning rate decay (in 1000 steps)')
+    parser.add_argument('--lr_scheduler_type', type=str, default="DefaultScheduler",
+                        help='Scheduler type, either use custom DefaultScheduler or any from torch.optim.lr_scheduler')
 
-    parser.add_argument('--lr_decay_rate', type=float, default=0.1,
-                        help='learning rate decay amount')
+    parser.add_argument('--gamma', type=float, default=0.1,
+                        help='multiplicative factor of learning rate decay')
+
+    parser.add_argument('--step_size', type=int, default=450000,
+                        help='period of learning rate decay. train_iters * 180%')
 
     # volume rendering option
-    parser.add_argument('--noise_std', type=float, default=0.2,
+    parser.add_argument('--noise_std', type=float, default=0.5,
                         help='factor to perturb the model prediction of sigma')
 
     # position encoding option
