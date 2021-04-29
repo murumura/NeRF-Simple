@@ -116,9 +116,11 @@ class NeRFSystem(torch.nn.Module):
         else:
             raise NotImplementedError('args.optimizer type [%s] is not found' % self.args.optimizer)
 
-        if hasattr(torch.optim.lr_scheduler, self.args.lr_scheduler_type):
-            scheduler = getattr(torch.optim.lr_scheduler, self.args.lr_scheduler_type)(
-                self.optimizer, self.args.gamma, self.args.step_size
+        if self.args.lr_scheduler_type== "MultiStepLR":
+            scheduler = torch.optim.lr_scheduler.MultiStepLR(
+                self.optimizer, 
+                milestones=self.args.milestones, 
+                gamma=self.args.gamma
             )
         else:
             scheduler = self.get_scheduler(self.optimizer)

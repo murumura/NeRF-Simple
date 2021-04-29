@@ -65,11 +65,12 @@ class Trainer():
                         
                     pbar.set_postfix(
                         **{
-                        'Train loss(batch)'     : loss_dict['log']['train/loss'].item(),
-                        'Coarse loss (batch)'   : loss_dict['log']['train/coarse_loss'].item(),
-                        'Fine loss (batch)'     : loss_dict['log']['train/fine_loss'].item(),
-                        "Coarse psnr (batch)"   : loss_dict['log']['train/coarse_psnr'].item(),
-                        "Fine psnr (batch)"   : loss_dict['log']['train/fine_psnr'].item()
+                        'Train loss'    : loss_dict['log']['train/loss'].item(),
+                        'Coarse loss'   : loss_dict['log']['train/coarse_loss'].item(),
+                        'Fine loss'     : loss_dict['log']['train/fine_loss'].item(),
+                        "Coarse psnr"   : loss_dict['log']['train/coarse_psnr'].item(),
+                        "Fine psnr"     : loss_dict['log']['train/fine_psnr'].item(),
+                        "LR"            : optimizer.param_groups[0]['lr']
                         }
                     )
                     pbar.update()

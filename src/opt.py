@@ -46,7 +46,7 @@ def get_options():
                         help='config file path')
 
     # training main options
-    parser.add_argument('--epochs', type=int, default=16, 
+    parser.add_argument('--epochs', type=int, default=30, 
                         help='number of epochs')
 
     parser.add_argument('--batch_size', type=int, default=2*1024,
@@ -66,9 +66,13 @@ def get_options():
 
     parser.add_argument('--gamma', type=float, default=0.1,
                         help='multiplicative factor of learning rate decay')
-
+    ## for DefaultScheduler
     parser.add_argument('--step_size', type=int, default=450000,
                         help='period of learning rate decay. train_iters * 180%')
+
+    ## for MultiStepLR
+    parser.add_argument('--milestones', nargs="+", type=int, default=[2, 4, 8],
+                        help='list of epoch indices. Must be increasing.')
 
     # volume rendering option
     parser.add_argument('--noise_std', type=float, default=0.5,

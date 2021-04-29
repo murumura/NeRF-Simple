@@ -87,7 +87,9 @@ class VolumeRenderer(torch.nn.Module):
                     )
                     * radiance_field_noise_std
             ) #(ray_count, num_samples)
-        sigmas = torch.nn.functional.relu(radiance_field[..., 3] + noise)
+        # as suggested in https://github.com/kwea123/nerf_pl/issues/51 to see if it work fine
+        sigmas = torch.nn.functional.softplus(radiance_field[..., 3] + noise)
+        #sigmas = torch.nn.functional.relu(radiance_field[..., 3] + noise)
         alpha = 1.0 - torch.exp(-sigmas * deltas)
         # T_i = cumulative-product(j=1,j=(i-1))(1 - alpha_j)
         T_i = cumprod_exclusive(1.0 - alpha + 1e-10) #(ray_count, num_samples)
