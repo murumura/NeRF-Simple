@@ -309,7 +309,8 @@ class NeRFSystem(torch.nn.Module):
             "loss": loss,
             "log": {
                 "train/loss": loss,
-                **log_vals
+                **log_vals,
+                "train/lr": self.optimizer.param_groups[0]['lr']
             }
         }
 

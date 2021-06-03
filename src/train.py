@@ -28,6 +28,13 @@ class Trainer():
             batch_size:                {self.batch_size}
             num_epochs:                {self.num_epochs}
         ''')
+
+    def parse_log_dict(self, log_dict) -> dict:
+        return {
+            name:val.item() if callable((getattr(val, "item", None))) \
+                else val for name, val in log_dict["log"].items() 
+        }
+
     def fit(self, NeRFSystem):
 
         def data_loop(dl):
@@ -63,16 +70,7 @@ class Trainer():
                     ###   update learning rate  ###
                     scheduler.step()
                         
-                    pbar.set_postfix(
-                        **{
-                        'Train loss'    : loss_dict['log']['train/loss'].item(),
-                        'Coarse loss'   : loss_dict['log']['train/coarse_loss'].item(),
-                        'Fine loss'     : loss_dict['log']['train/fine_loss'].item(),
-                        "Coarse psnr"   : loss_dict['log']['train/coarse_psnr'].item(),
-                        "Fine psnr"     : loss_dict['log']['train/fine_psnr'].item(),
-                        "LR"            : optimizer.param_groups[0]['lr']
-                        }
-                    )
+                    pbar.set_postfix(**self.parse_log_dict(loss_dict))
                     pbar.update()
                     # Validation
                     if (iter_n) % (self.validate_freq) == 0 and batch_idx > 0:
