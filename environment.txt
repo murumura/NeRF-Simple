@@ -3,6 +3,10 @@ torchvision==0.9.1
 imageio==2.9.0
 imageio-ffmpeg==0.4.3
 matplotlib
-configargparse
-tqdm
+tqdm==4.51.0
 opencv-python
+numpy==1.19.2
+pyhocon==0.3.59
+tensorboard=2.7.0
+PyMCubes==0.1.2
+Pillow==9.0.0

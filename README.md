@@ -1,6 +1,5 @@
 # NeRF
 Simple PyTorch implementation of NeRF (Neural Radiance Fields).
-(This project is currently under development)
 
 # Installation
 ## Option 1: Using pip
@@ -25,7 +24,15 @@ Once everything is setup, to run experiments, first edit `configs/lego.txt` to s
 
 Invoked training procedure by :
 ```bash
-python src/train.py --config configs/lego.txt --train True
+python src/train.py \
+    --conf_path configs/lego.conf
+    --exp_tag tag-you-what
+```
+
+Monitor training procedure through tensorboard:
+
+```bash
+tensorboard --logdir=./exp/tag-you-want/exp_name/logs --host=0.0.0.0 --port=6006
 ```
 
 ## Mesh reconstruction
@@ -35,7 +42,14 @@ pip install PyMCubes
 ```
 Then invoked mesh reconstruction by :
 ```bash
-python src/MeshExtraction.py --config configs/lego.txt --eval True
+python src/eval.py \
+    --conf configs/lego.conf 
+    --ckpt_path pretrained/lego.pth
+    --output_path ./output
+    --mesh_name lego.obj
+    --iso_level 90
+    --limit 1.2
+    --sample_resolution 128
 ```
 <p align="center" width="100%">
     <img width="33%" src="./data/assets/legomesh1.png"> 
@@ -45,8 +59,7 @@ python src/MeshExtraction.py --config configs/lego.txt --eval True
 ## Pretrained model
 ```bash
 pretrained/
-└── lego.ckpt
-
+└── lego.pth
 ```
 
 ## Datasets

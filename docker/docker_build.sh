@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build -t mvwf-dev .
+docker build -t nerf-dev .

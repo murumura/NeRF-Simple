@@ -5,3 +5,4 @@ src/__pycache__
 logs/
 output/
 ./states
+./exp

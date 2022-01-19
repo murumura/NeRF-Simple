@@ -9,10 +9,10 @@ docker run \
   --rm \
   -it \
   --gpus all \
-  -v $(pwd):/mvwf \
+  -v $(pwd):/nerf \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -p 1234:8888 -p 6006:6006 \
   -e DISPLAY=$DISPLAY \
   -e QT_X11_NO_MITSHM=1 \
   --privileged \
-  --name mvwf_container mvwf-dev
+  --name nerf_container nerf-dev
