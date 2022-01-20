@@ -26,11 +26,6 @@ class NeRFTrainer():
                 for x in iter(dl):
                     yield x
 
-        ##### set up training misc. ######
-        self.batch_size = NeRFSystem.batch_size
-        self.end_iter = NeRFSystem.end_iter
-        self.validate_freq = NeRFSystem.validate_every
-        self.iter_n = NeRFSystem.iter_n
         ##### prepare training/validation datasets #####
         NeRFSystem.prepare_data()
         train_dataloader = NeRFSystem.train_dataloader()
@@ -43,12 +38,12 @@ class NeRFTrainer():
         n_rays = len(train_dataloader)  # rays
         n_val_imgs = len(validation_dataloader)  # images
         #####  Core optimization loop  #####
-        while self.iter_n < self.end_iter:
+        while NeRFSystem.iter_n < NeRFSystem.end_iter:
             batch_time = time.time()
-            with tqdm(total=n_rays, desc=f'iters {self.iter_n + 1}/{self.end_iter}', unit='rays') as pbar:
+            with tqdm(total=n_rays, desc=f'iters {NeRFSystem.iter_n + 1}/{NeRFSystem.end_iter}', unit='rays') as pbar:
                 for batch_idx, batch in enumerate(train_dataloader):
-                    self.iter_n += 1
-                    loss_dict = NeRFSystem.training_step(batch, self.iter_n)
+                    NeRFSystem.iter_n += 1
+                    loss_dict = NeRFSystem.training_step(batch)
                     loss = loss_dict['loss']
                     optimizer.zero_grad()
                     loss.backward()
@@ -58,13 +53,13 @@ class NeRFTrainer():
                     pbar.set_postfix(**self.parse_log_dict(loss_dict))
                     pbar.update()
                     # Validation
-                    if (self.iter_n) % (self.validate_freq) == 0 and batch_idx > 0:
-                        tqdm.write("[VAL] =======> Iter: " + str(self.iter_n))
+                    if (NeRFSystem.iter_n) % (NeRFSystem.validate_every) == 0 and batch_idx > 0:
+                        tqdm.write("[VAL] =======> Iter: " + str(NeRFSystem.iter_n))
                         val_batch = next(validation_iterator)
-                        NeRFSystem.validation_step(val_batch, self.iter_n)
+                        NeRFSystem.validation_step(val_batch, NeRFSystem.iter_n)
 
             delta_time_batch = time.time() - batch_time
-            tqdm.write(f"================== End of Training {self.iter_n}, Duration : {delta_time_batch} =================")
+            tqdm.write(f"================== End of Training {NeRFSystem.iter_n}, Duration : {delta_time_batch} =================")
 
         #####  We are done!  #####
         logging.info(f'Done! Total time spent:{time.time() - total_time}')

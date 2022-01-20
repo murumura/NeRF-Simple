@@ -126,7 +126,7 @@ class NeRFSystem(torch.nn.Module):
         rgbs = batch['rgbs']  # (B, 3)
         return rays, rgbs
 
-    def training_step(self, batch, iter_n):
+    def training_step(self, batch):
         self.train_mode()
         # Unpacking bundle
         rays, rgbs = self.decode_batch(batch)
@@ -150,16 +150,16 @@ class NeRFSystem(torch.nn.Module):
             "train/fine_psnr": fine_psnr
         }
         loss = coarse_loss + fine_loss
-        self.writer.add_scalar('Loss/loss', loss, iter_n)
-        self.writer.add_scalar('Loss/fine_mse', fine_loss, iter_n)
-        self.writer.add_scalar('Loss/coarse_mse', coarse_loss, iter_n)
-        self.writer.add_scalar('Statistics/fine_psnr', fine_psnr, iter_n)
-        self.writer.add_scalar('Statistics/coarse_psnr', coarse_psnr, iter_n)
+        self.writer.add_scalar('Loss/loss', loss, self.iter_n)
+        self.writer.add_scalar('Loss/fine_mse', fine_loss, self.iter_n)
+        self.writer.add_scalar('Loss/coarse_mse', coarse_loss, self.iter_n)
+        self.writer.add_scalar('Statistics/fine_psnr', fine_psnr, self.iter_n)
+        self.writer.add_scalar('Statistics/coarse_psnr', coarse_psnr, self.iter_n)
 
         return {"loss": loss, "log": {"train/loss": loss, **log_vals, "train/lr": self.optimizer.param_groups[0]['lr']}}
 
     @torch.no_grad()
-    def validation_step(self, batch, iter_n):
+    def validation_step(self, batch):
         """Do batched inference on rays using chunk."""
         self.eval_mode()
         rays, rgbs = self.decode_batch(batch)
@@ -202,26 +202,27 @@ class NeRFSystem(torch.nn.Module):
         stack = torch.stack([img_gt, img, depth])  # (3, 3, H, W)
         disp = cast_to_disparity_image(fine_bundle[f'disp_map'].view(H, W))  # (3, H, W)
 
-        save_img(stack, os.path.join(os.path.join(self.base_exp_dir, 'validations'), f'validations%08d.png' % iter_n))
-        save_img(disp, os.path.join(os.path.join(self.base_exp_dir, 'disparity'), f'disparity%08d.png' % iter_n))
+        save_img(stack, os.path.join(os.path.join(self.base_exp_dir, 'validations'), f'validations%08d.png' % self.iter_n))
+        save_img(disp, os.path.join(os.path.join(self.base_exp_dir, 'disparity'), f'disparity%08d.png' % self.iter_n))
 
-        saving_ckpt = (iter_n % self.save_every == 0 and iter_n > 0)
+        saving_ckpt = (self.iter_n % self.save_every == 0 and self.iter_n > 0)
         if saving_ckpt:
-            self.save_checkpoint(iter_n)
+            self.save_checkpoint()
 
         self.train_mode()
 
-    def save_checkpoint(self, iter_n):
+    def save_checkpoint(self):
         mlp_states = self.model.save_state()
         checkpoint = {
             **mlp_states,
             'optimizer': self.optimizer.state_dict(),
-            'iter_n': iter_n,
+            'iter_n': self.iter_n,
         }
         os.makedirs(os.path.join(self.base_exp_dir, 'checkpoints'), exist_ok=True)
-        torch.save(checkpoint, os.path.join(self.base_exp_dir, 'checkpoints', 'ckpt_{:0>6d}.pth'.format(iter_n)))
+        torch.save(checkpoint, os.path.join(self.base_exp_dir, 'checkpoints', 'ckpt_{:0>6d}.pth'.format(self.iter_n)))
 
     def load_ckpt(self, checkpoint_name):
+        logging.info('Loading checkpoint....')
         checkpoint = torch.load(os.path.join(self.base_exp_dir, 'checkpoints', checkpoint_name), map_location=self.device)
         self.model.load_state(checkpoint)
         self.optimizer.load_state_dict(checkpoint['optimizer'])

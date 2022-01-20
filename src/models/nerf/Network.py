@@ -30,17 +30,24 @@ class NeRFMLP(torch.nn.Module):
         self.xyz_encoder = None
         self.dir_encoder = None
         if use_encoder:
+            encoder_name = kwargs.get('encoder_name', "position_encoder")
             # point coordinate position encoder
             num_freqs_xyz = kwargs.get("num_freqs_xyz", 10)
             log_sampling_xyz = kwargs.get("log_sampling_xyz", True)
             self.xyz_encoder, self.in_channels_xyz = get_encoder(
-                input_channels=NeRF_in_channels_xyz, num_freqs=num_freqs_xyz, log_scale=log_sampling_xyz
+                encoder_name=encoder_name,
+                input_channels=NeRF_in_channels_xyz,
+                num_freqs=num_freqs_xyz,
+                log_scale=log_sampling_xyz
             )
             # direction position encoder
             num_freqs_dir = kwargs.get("num_freqs_dir", 4)
             log_sampling_dir = kwargs.get("log_sampling_dir", True)
             self.dir_encoder, self.in_channels_dir = get_encoder(
-                input_channels=NeRF_in_channels_dir, num_freqs=num_freqs_dir, log_scale=log_sampling_dir
+                encoder_name=encoder_name,
+                input_channels=NeRF_in_channels_dir,
+                num_freqs=num_freqs_dir,
+                log_scale=log_sampling_dir
             )
         # xyz encoding layers
         for i in range(self.D):

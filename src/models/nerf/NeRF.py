@@ -37,7 +37,29 @@ class NeRFModel(torch.nn.Module):
     ):
         """Constructor
         Args:
-            conf: PyHocon configuration subtree 'model'
+            perturb:(bool) wether to perturb depth sampling points (random offset)
+            lindisp:(bool) sampling linearly in disparity rather than depth, using in LLFF dataset
+            NeRF_Depth:(int) number of layers for density (sigma) encoder
+            NeRF_Width:(int) number of hidden units in each layer
+            NeRF_in_channels_xyz:(int) number of input channels for xyz
+            NeRF_in_channels_dir:(int) number of input channels for direction
+            skips:(list) add skip connection in the Dth layer
+            use_encoder: (bool) using position encoder for coordinate embedding
+            pos_encoder_name(string): registered name for postion encoder
+            num_freqs_xyz(int): frequency of encoding functions to use in the positional encoding of the coordinates.
+            log_sampling_xyz(bool): whether or not to perform log sampling in the positional encoding of the coordinates.
+            num_freqs_dir(int): frequency of encoding functions to use in the positional encoding of the directions.
+            log_sampling_dir(bool): whether or not to perform log sampling in the positional encoding of the directions.
+            train_radiance_field_noise_std: (0 < float < 1): factor to perturb the model prediction of sigma when training.
+            val_radiance_field_noise_std:  (0 < float < 1): factor to perturb the model prediction of sigma when evaluating.
+            white_background: (bool): 
+                if true, By calculating the complement (`1-acc_map`) of the weight accumulation of each light (acc_map), 
+                if the complement is larger, the light is more likely to pass through the free-space, 
+                add the value of r, g, and b of each ray to make the value close to 1 (white).
+            attenuation_threshold: (float) penetrability threshold, transparency of sampled point along the ray transparency,
+                (`T_i`) below this threshold will be regarded as not intersecting with the object (sampled point in free space).
+            num_coarse_samples (int): Number of depth samples per ray for the coarse network.
+            num_fine_samples (int): Number of depth samples per ray for the fine network.
         """
         super(NeRFModel, self).__init__()
         # Device on which to run.
@@ -93,11 +115,11 @@ class NeRFModel(torch.nn.Module):
     def forward(self, rays: torch.Tensor) -> Tuple[dict, dict]:
         """ Performs the coarse and fine rendering passes of the radiance field 
         Args:
-            ray_points: (num_rays, 8) tensor containing ray origin, ray direcitons, ray near and for
+            rays: (num_rays, 8) tensor containing ray origin, ray direcitons, ray near and for
         Returns:
             dict containing the outputs of the rendering results:
-                fine_bundle:  [num_rays, 3]. Rendering result from fine mlp.
-                coarse_bundle: [num_rays, 3]. Rendering result from coarse mlp.
+                fine_bundle (dict) Rendering result from fine mlp.
+                coarse_bundle (dict)  Rendering result from coarse mlp.
         """
         ray_origins, ray_dirs = rays[:, 0:3], rays[:, 3:6]  # both (N_rays, N_sample, 3)
         ray_near, ray_far = rays[:, 6:7], rays[:, 7:8]  # both (N_rays, N_sample, 1)
