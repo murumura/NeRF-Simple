@@ -56,7 +56,7 @@ class NeRFTrainer():
                     if (NeRFSystem.iter_n) % (NeRFSystem.validate_every) == 0 and batch_idx > 0:
                         tqdm.write("[VAL] =======> Iter: " + str(NeRFSystem.iter_n))
                         val_batch = next(validation_iterator)
-                        NeRFSystem.validation_step(val_batch, NeRFSystem.iter_n)
+                        NeRFSystem.validation_step(val_batch)
 
             delta_time_batch = time.time() - batch_time
             tqdm.write(f"================== End of Training {NeRFSystem.iter_n}, Duration : {delta_time_batch} =================")
